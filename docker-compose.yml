@@ -3,7 +3,7 @@ services:
         nginx:
                 build: './nginx'
                 ports:
-                 - 8080:80
+                 - 9000:80
                 networks:
                  - se_backend
 #       grproxy:
