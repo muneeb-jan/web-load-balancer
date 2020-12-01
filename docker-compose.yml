@@ -1,9 +1,17 @@
 version: '2'
 services:
         nginx:
-        grproxy:
-        hbase:
-        gserve1:
-        gserve2:
+                build: './nginx'
+                ports:
+                 - 8080:80
+                networks:
+                 - se_backend
+#       grproxy:
+#       hbase:
+#       gserve1:
+#       gserve2:
 
 networks:
+        se_backend:
+        se_frontend:
+
