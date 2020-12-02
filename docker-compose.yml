@@ -6,13 +6,19 @@ services:
                  - 9000:80
                 networks:
                  - se_backend
-#       grproxy:
+        grproxy:
+                build: './grproxy'
+                ports:
+                 - 8080:8080
+                networks:
+                 - se_frontend
+                 - se_backend
         hbase: 
                 build: './hbase'
                 networks:
-                 - se_backend:
-                         aliases:
-                          - zookeper
+                  se_backend:
+                   aliases:
+                   - zookeper
 
 #       gserve1:
 #       gserve2:
