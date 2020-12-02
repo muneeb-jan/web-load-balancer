@@ -1,9 +1,23 @@
 version: '2'
 services:
         nginx:
-        grproxy:
-        hbase:
-        gserve1:
-        gserve2:
+                build: './nginx'
+                ports:
+                 - 9000:80
+                networks:
+                 - se_backend
+#       grproxy:
+        hbase: 
+                build: './hbase'
+                networks:
+                 - se_backend:
+                         aliases:
+                          - zookeper
+
+#       gserve1:
+#       gserve2:
 
 networks:
+        se_backend:
+        se_frontend:
+
