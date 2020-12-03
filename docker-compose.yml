@@ -7,6 +7,10 @@ services:
                 networks:
                  - se_backend
         grproxy:
+                depends_on:
+                 - nginx
+                 - gserve1
+                 - gserve2
                 build: './grproxy'
                 ports:
                  - 8080:8080
@@ -20,8 +24,14 @@ services:
                    aliases:
                    - zookeper
 
-#       gserve1:
-#       gserve2:
+        gserve1:
+                build: './gserve'
+                networks:
+                 - se_backend
+        gserve2:
+                build: './gserve'
+                networks:
+                 - se_backend
 
 networks:
         se_backend:
