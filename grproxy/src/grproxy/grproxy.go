@@ -18,7 +18,6 @@ func NewMultipleHostReverseProxy(targets []*url.URL) *httputil.ReverseProxy {
 			target := targets[rand.Int()%len(targets)]
 			req.URL.Scheme = target.Scheme
 			req.URL.Host = target.Host
-			req.URL.Path = target.Path
 		} else {
 			fmt.Println("This should redirect to nginx for all other cases.")
 			req.URL.Scheme = "http"
