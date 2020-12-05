@@ -14,7 +14,7 @@
 FROM alpine:latest
 MAINTAINER Hari Sekhon (https://www.linkedin.com/in/harisekhon)
 
-ARG HBASE_VERSION=1.4.13
+ARG HBASE_VERSION=2.2.6
 
 ENV PATH $PATH:/hbase/bin
 

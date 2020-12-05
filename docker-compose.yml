@@ -22,15 +22,19 @@ services:
                 networks:
                   se_backend:
                    aliases:
-                   - zookeper
+                   - zookeeper
 
         gserve1:
+                depends_on:
+                 - hbase
                 build: './gserve'
                 environment:
                  - gsname=gserve1
                 networks:
                  - se_backend
         gserve2:
+                depends_on:
+                 - hbase
                 build: './gserve'
                 environment:
                  - gsname=gserve2
