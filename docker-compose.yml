@@ -26,10 +26,14 @@ services:
 
         gserve1:
                 build: './gserve'
+                environment:
+                 - gsname=gserve1
                 networks:
                  - se_backend
         gserve2:
                 build: './gserve'
+                environment:
+                 - gsname=gserve2
                 networks:
                  - se_backend
 
