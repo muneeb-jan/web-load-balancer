@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/samuel/go-zookeeper/zk"
@@ -25,7 +26,7 @@ func connect() *zk.Conn {
 // Targets are explicitly defined in main.
 func NewMultipleHostReverseProxy(targets []*url.URL) *httputil.ReverseProxy {
 	director := func(req *http.Request) {
-		if req.URL.Path == "/library" {
+		if strings.Contains(req.URL.Path, "library") {
 			fmt.Println("This should redirect to gserve servers after catching library in round robin.")
 			target := targets[rand.Int()%len(targets)]
 			req.URL.Scheme = target.Scheme
