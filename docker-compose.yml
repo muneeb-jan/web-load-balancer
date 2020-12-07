@@ -13,8 +13,8 @@ services:
                  - gserve2
                 build: './grproxy'
                 ports:
-                 - 8080:8080
                  - 80:8080
+                 - 8080:8080 
                 networks:
                  - se_frontend
                  - se_backend

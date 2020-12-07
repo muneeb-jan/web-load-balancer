@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"strings"
 
 	"github.com/samuel/go-zookeeper/zk"
 )
@@ -25,79 +26,104 @@ func connect() *zk.Conn {
 
 // Encode the form data
 func encoder(unencodedJSON []byte) string {
-	// get go object from json byte
+	// convert JSON to Go objects
 	var unencodedRows RowsType
 	json.Unmarshal(unencodedJSON, &unencodedRows)
 
-	//  encode all fields value of go object , return EncRowsType
+	// encode fields in Go objects
 	encodedRows := unencodedRows.encode()
 
-	// convert to json byte[] from go object (EncRowsType)
+	// convert encoded Go objects to JSON
 	encodedJSON, _ := json.Marshal(encodedRows)
 
 	return string(encodedJSON)
 }
 
-// Decode response from HBASE
+// Decode data from HBASE
 func decoder(encodedJSON []byte) string {
 
-	// get go object from json byte
+	// convert JSON to Go objects
 	var encodedRows EncRowsType
-	fmt.Println("From decoder test print: ", string(encodedJSON))
 	json.Unmarshal(encodedJSON, &encodedRows)
-	fmt.Println("From decoder first: ", encodedRows)
 
-	//  decode all fields value of go object , return RowsType
-	decodedRows, err := encodedRows.decode()
-	if err != nil {
-		fmt.Println("%+v", err)
-	}
-	fmt.Println("From decoder second: ", decodedRows)
-	// convert to json byte[] from go object (RowsType)
-	deCodedJSON, _ := json.Marshal(decodedRows)
+	// decode fields in Go objects
+	decodedRows, _ := encodedRows.decode()
 
-	//fmt.Println("From decoder method: ", string(deCodedJSON))
-	return string(deCodedJSON)
+	// convert encoded Go objects to JSON
+	decodedJSON, _ := json.Marshal(decodedRows)
+
+	return string(decodedJSON)
 }
 
-func getValue() string {
 
-	hbase_url := "http://hbase:8080/se2:library/fakerow/*"
-	//my_request, _ := http.NewRequest("GET", hbase_url, nil)
-	//my_client := &http.Client{}
-	//hbase_response, err := my_client.Do(my_request)
-	hbase_response, err := http.Get(hbase_url)
-	if err != nil {
-		fmt.Printf("Error during getValue method: %v\n", err)
+// GET EVERYTHING FROM HBASE
+func getValue(my_path string) string {
+
+	hbase_url := "http://hbase:8080/se2:library/scanner/"
+	//hbase_url := "http://hbase:8080" + my_path
+	
+	//GET SCANNER URL
+	my_request, _ := http.NewRequest("PUT", hbase_url, bytes.NewBuffer([]byte("<Scanner batch=\"10\"/>")))
+	my_client := &http.Client{}
+	my_request.Header.Add("Accept", "text/plain")
+	my_request.Header.Add("Content-Type", "text/xml")
+	scanner_response, sc_err := my_client.Do(my_request)
+	if sc_err != nil {
+		fmt.Printf("Error during getValue method: %v\n", sc_err)
+	}
+	var scanner_value string
+	for key,value := range scanner_response.Header {
+		if strings.Contains(key,"Location") {
+			scanner_value = value[0]
+		}
 	}
 
-	encoded_response, ioerr := ioutil.ReadAll(hbase_response.Body)
+	// GET THE MAIN TABLE DATA
+	hbase_request, _ := http.NewRequest("GET", scanner_value, nil)
+	hbase_request.Header.Add("Accept", "application/json")
+	hbase_response, err := my_client.Do(hbase_request)
+	if err != nil {
+		fmt.Printf("Error during scanner get method: %v\n", err)
+	}
+	final_response, ioerr := ioutil.ReadAll(hbase_response.Body)
 	if ioerr != nil {
 		fmt.Printf("Error during IO util read of hbase response. %v", ioerr)
-	}
+	}	
+	fmt.Println("The response: ", string(final_response))
+	decoded_response := decoder(final_response) // DECODE THE RECEIVED RESPNSE BODY
 
-	final_response := decoder(encoded_response)
-	return final_response
+	// DELETE THE SCANNER OBJ
+	del_req, _ := http.NewRequest("DELETE", scanner_value, nil)
+	del_req.Header.Add("Accept","text/plain")
+	del_response, d_err := my_client.Do(del_req)
+	if d_err != nil {
+		fmt.Printf("Error during Scanner delete operation: %v", d_err)
+	}
+	fmt.Printf("Scanner delete status: %s", del_response.Status)
+
+
+	return decoded_response
 }
 
 // Function to post the application body into HBASE
 func postValue(in_req string) {
 	hbase_url := "http://hbase:8080/se2:library/fakerow"
 	post_response, err := http.Post(hbase_url, "application/json", bytes.NewBuffer([]byte(in_req)))
-	//post_response, err := http.NewRequest("PUT", hbase_url, )
 	if err != nil {
 		fmt.Printf("Error from postValue function: %v\n", err)
 	}
-
-	fmt.Printf("Data has been posted: %s", post_response.Status)
+	fmt.Println("Data has been posted: ", post_response.Status)
 }
 
+
+// MAIN HANDLER FUNCTION
 func library(w http.ResponseWriter, req *http.Request) {
 
 	if req.Method == "GET" {
 		// If Request is GET, send to getValue to retrieve response.
-		response_value := getValue()
-		fmt.Fprintf(w, "The Response to your request is below:\n\n %s\n", response_value)
+		my_path := req.URL.Path
+		response_value := getValue(my_path)
+		fmt.Fprintf(w, "\nThe Response to your request is below:\n\n %s\n", response_value)
 
 	} else if req.Method == "POST" || req.Method == "PUT" {
 
@@ -136,7 +162,7 @@ func main() {
 		fmt.Printf(" %s has successfully connected to Zookeeper\n", my_name)
 	}
 
-	http.HandleFunc("/library", library)
+	http.HandleFunc("/", library)
 
 	http.ListenAndServe(":80", nil)
 }
