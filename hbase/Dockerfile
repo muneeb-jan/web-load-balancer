@@ -27,7 +27,7 @@ WORKDIR /
 
 RUN \
     apk add --no-cache bash openjdk8-jre-base wget tar openssh && \
-    url="https://mirror.softaculous.com/apache/hbase/$HBASE_VERSION/hbase-$HBASE_VERSION-bin.tar.gz"; \
+    url="http://www.apache.org/dyn/mirrors/mirrors.cgi?action=download&filename=hbase/$HBASE_VERSION/hbase-$HBASE_VERSION-bin.tar.gz"; \
     wget -t 100 --retry-connrefused -O "hbase-$HBASE_VERSION-bin.tar.gz" "$url" && \
     mkdir hbase-$HBASE_VERSION && \
     tar zxf hbase-$HBASE_VERSION-bin.tar.gz -C hbase-$HBASE_VERSION --strip 1 && \
