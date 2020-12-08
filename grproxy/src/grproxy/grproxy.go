@@ -50,6 +50,14 @@ func main() {
 		time.Sleep(5)
 	}
 
+	grproxy_flag := int32(0)
+	grproxy_ac := zk.WorldACL(zk.PermAll)
+	grproxy_seq, err := conn.Create("/grproxy", []byte("grproxy"), grproxy_flag, grproxy_ac)
+	if err != nil {
+		fmt.Printf("Error while creating ZNODE: %v\n", err)
+	}
+	fmt.Println("Znode created: ", grproxy_seq)
+
 	proxy := NewMultipleHostReverseProxy([]*url.URL{
 		{
 			Scheme: "http",
