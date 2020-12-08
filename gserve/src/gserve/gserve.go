@@ -162,7 +162,14 @@ func main() {
 		fmt.Printf(" %s has successfully connected to Zookeeper\n", my_name)
 	}
 
-	http.HandleFunc("/", library)
+	gserv_flag := int32(zk.FlagEphemeral)
+	gserv_ac := zk.WorldACL(zk.PermAll)
+	gserve_eph, err := conn.Create("/grproxy/"+my_name, []byte(my_name), gserv_flag, gserv_ac)
+	if err != nil {
+		fmt.Printf("Error while creating the ephemeral node: %v\n", err)
+	}
+	fmt.Println("Z-Node created: ", gserve_eph)
 
+	http.HandleFunc("/", library)
 	http.ListenAndServe(":80", nil)
 }
