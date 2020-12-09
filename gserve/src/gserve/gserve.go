@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/samuel/go-zookeeper/zk"
 )
@@ -55,13 +55,12 @@ func decoder(encodedJSON []byte) string {
 	return string(decodedJSON)
 }
 
-
 // GET EVERYTHING FROM HBASE
 func getValue(my_path string) string {
 
 	hbase_url := "http://hbase:8080/se2:library/scanner/"
 	//hbase_url := "http://hbase:8080" + my_path
-	
+
 	//GET SCANNER URL
 	my_request, _ := http.NewRequest("PUT", hbase_url, bytes.NewBuffer([]byte("<Scanner batch=\"10\"/>")))
 	my_client := &http.Client{}
@@ -72,8 +71,8 @@ func getValue(my_path string) string {
 		fmt.Printf("Error during getValue method: %v\n", sc_err)
 	}
 	var scanner_value string
-	for key,value := range scanner_response.Header {
-		if strings.Contains(key,"Location") {
+	for key, value := range scanner_response.Header {
+		if strings.Contains(key, "Location") {
 			scanner_value = value[0]
 		}
 	}
@@ -88,19 +87,18 @@ func getValue(my_path string) string {
 	final_response, ioerr := ioutil.ReadAll(hbase_response.Body)
 	if ioerr != nil {
 		fmt.Printf("Error during IO util read of hbase response. %v", ioerr)
-	}	
+	}
 	fmt.Println("The response: ", string(final_response))
 	decoded_response := decoder(final_response) // DECODE THE RECEIVED RESPNSE BODY
 
 	// DELETE THE SCANNER OBJ
 	del_req, _ := http.NewRequest("DELETE", scanner_value, nil)
-	del_req.Header.Add("Accept","text/plain")
+	del_req.Header.Add("Accept", "text/plain")
 	del_response, d_err := my_client.Do(del_req)
 	if d_err != nil {
 		fmt.Printf("Error during Scanner delete operation: %v", d_err)
 	}
 	fmt.Printf("Scanner delete status: %s", del_response.Status)
-
 
 	return decoded_response
 }
@@ -114,7 +112,6 @@ func postValue(in_req string) {
 	}
 	fmt.Println("Data has been posted: ", post_response.Status)
 }
-
 
 // MAIN HANDLER FUNCTION
 func library(w http.ResponseWriter, req *http.Request) {
@@ -164,7 +161,7 @@ func main() {
 
 	gserv_flag := int32(zk.FlagEphemeral)
 	gserv_ac := zk.WorldACL(zk.PermAll)
-	gserve_eph, err := conn.Create("/grproxy/"+my_name, []byte(my_name), gserv_flag, gserv_ac)
+	gserve_eph, err := conn.Create("/"+my_name, []byte(my_name), gserv_flag, gserv_ac)
 	if err != nil {
 		fmt.Printf("Error while creating the ephemeral node: %v\n", err)
 	}
