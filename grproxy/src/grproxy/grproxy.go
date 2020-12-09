@@ -72,15 +72,17 @@ func main() {
 
 	running_gservers := make(chan []string)
 	// Return the running instances of gservers
-	go gserver_monitoring(conn, "/grproxy", running_gservers)
+	go gserver_monitoring(conn, "/", running_gservers)
 
 	go func() {
 		for {
 			children := <-running_gservers
 			var temp []string
 			for _, child := range children {
-				gserver_urls, _, rerr := conn.Get("/grproxy/" + child)
-				temp = append(temp, string(gserver_urls))
+				gserver_urls, _, rerr := conn.Get("/" + child)
+				if strings.Contains(child, "gserve") {
+					temp = append(temp, string(gserver_urls))
+				}
 				if rerr != nil {
 					fmt.Printf("Gserver node error in proxy routine: %+v\n", rerr)
 				}
