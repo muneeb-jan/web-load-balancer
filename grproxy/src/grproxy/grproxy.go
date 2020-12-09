@@ -29,6 +29,7 @@ func gserver_monitoring(conn *zk.Conn, child_path string, running_gserver chan [
 	for {
 		children, _, _, _ := conn.ChildrenW(child_path)
 		running_gserver <- children
+		time.Sleep(time.Millisecond * 500)
 	}
 }
 
